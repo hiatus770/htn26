@@ -1,2 +1,4 @@
 # Downloaded/generated ML model binaries; keep them local, not in Git.
 /vision/chessboard2fen-setup/jetson-modern/models/*.onnx
+__pycache__/
+*.pyc

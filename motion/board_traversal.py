@@ -136,7 +136,7 @@ class BoardTraversal:
         boards = list(self.table.boards)
         if not boards:
             raise RuntimeError("no boards configured -- run "
-                               "`python -m motion.tools.record_waypoints` first")
+                               "`uv run motion/tools/record_waypoints.py` first")
         cycle = 0
         while cycles is None or cycle < cycles:
             yield from (boards if cycle % 2 == 0 else list(reversed(boards)))

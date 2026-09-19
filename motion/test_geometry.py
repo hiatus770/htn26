@@ -1,6 +1,13 @@
+# /// script
+# dependencies = [
+#   "numpy",
+# ]
+# ///
 """Hardware-free check of the board geometry and the parking controller.
 
-    python -m motion.test_geometry
+    uv run motion/test_geometry.py
+    (or plain `python -m motion.test_geometry` from the repo root -- no bbos
+    needed, so this one also runs fine off-robot on a dev machine)
 
 Runs with nothing but numpy -- no robot, no camera, no bbos. It synthesizes
 what the top camera would report from a known base pose, feeds it through the
@@ -15,6 +22,9 @@ those need test_alignment.py on the real robot.
 """
 import math
 import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))   # repo root, for `motion.*`
 
 import numpy as np
 

@@ -22,40 +22,49 @@ BoardTraversal            the loop; owns everything below
    45° pitch, forward offset. No bbapps config carries a `T_base_cam` for the
    head camera, so these are ours to get right, and every centimetre of
    extrinsic error becomes a centimetre of parking error.
-3. **Install the detector**: `uv pip install pupil-apriltags` (plus opencv and
-   numpy, which the robot already has).
+3. **Nothing to install by hand.** Every script below is run with `uv run` and
+   carries its own PEP 723 dependency block at the top (same convention as
+   every script in `bbapps/`), so `uv` resolves `pupil-apriltags`, opencv and
+   numpy into an ephemeral env on first run. No `pip install` needed.
 
 ## Bring-up order
 
+Each command below is run with `uv run <path>`, from the repo root (each
+script pins its own dependencies + a local `bbos` path, matching `bbapps/`'s
+convention -- see e.g. `bbapps/nav/main.py`'s header block).
+
 ```bash
 # 0. hardware-free: signs, geometry, controller convergence (needs only numpy)
-python -m motion.test_geometry
+uv run motion/test_geometry.py
 
 # 1. camera + tags, no motion. Hold a tag at a measured distance and check
 #    `dist` in the output; that validates CameraMount and the intrinsics.
-python -m motion.test_tags
+uv run motion/test_tags.py
 
-# 2. teach the waypoints. Drive with bbapps/teleop.py in another terminal --
-#    this script only reads slam.pose, so there is no writer conflict.
-python -m motion.tools.record_waypoints
+# 2. teach the waypoints. Drive with `uv run bbapps/teleop.py` in another
+#    terminal -- this script only reads slam.pose, so there is no writer conflict.
+uv run motion/tools/record_waypoints.py
 
 # 3. live tag errors for one board
-python -m motion.test_tags --board 1
+uv run motion/test_tags.py --board 1
 
 # 4. phase 2 alone, logging only: park roughly in front of board 1 first
-python -m motion.test_alignment --board 1 --dry-run
+uv run motion/test_alignment.py --board 1 --dry-run
 
 # 5. phase 2 live, hand on the e-stop
-python -m motion.test_alignment --board 1
+uv run motion/test_alignment.py --board 1
 
 # 6. one board, both phases
-python -m motion.test_traversal --board 1
+uv run motion/test_traversal.py --board 1
 
 # 7. the whole table
-python -m motion.test_traversal --cycles 1
+uv run motion/test_traversal.py --cycles 1
 ```
 
-Run everything from the repo root so `motion` is importable.
+Run everything from the repo root (each script inserts the repo root onto
+`sys.path` itself, so `from motion.x import y` resolves regardless of how it's
+invoked). `motion/test_geometry.py` needs no `bbos`, so `python -m
+motion.test_geometry` works too if you want to run it off-robot.
 
 ## Using it
 
@@ -99,6 +108,6 @@ board coordinates — more accurate and much faster than shuffling the base.
   is to the board's +x side (its own right), `yaw_err > 0` = base must turn
   left.
 
-Re-run `python -m motion.test_geometry` after touching any sign, gain or frame
+Re-run `uv run motion/test_geometry.py` after touching any sign, gain or frame
 convention. It catches a correction that pushes the base toward the table
 before any wheel turns.

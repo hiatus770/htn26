@@ -1,3 +1,13 @@
+# /// script
+# dependencies = [
+#   "bbos",
+#   "numpy",
+#   "opencv-python-headless",
+#   "pupil-apriltags",
+# ]
+# [tool.uv.sources]
+# bbos = { path = "/home/bracketbot/bbos", editable = true }
+# ///
 """Teach the five board waypoints instead of typing them.
 
 Drive the robot with bbapps/teleop.py in another terminal (this script only
@@ -5,17 +15,22 @@ READS slam.pose, so there is no writer conflict), park it where you want the
 base to sit for each board, and press Enter. If the top camera can see the
 board's four tags it captures those too, corner by corner.
 
-    python -m motion.tools.record_waypoints              # boards 1..5
-    python -m motion.tools.record_waypoints --boards 3   # re-teach board 3 only
-    python -m motion.tools.record_waypoints --no-tags    # waypoints only
+    uv run motion/tools/record_waypoints.py              # boards 1..5
+    uv run motion/tools/record_waypoints.py --boards 3   # re-teach board 3 only
+    uv run motion/tools/record_waypoints.py --no-tags    # waypoints only
 
 Hand-guessed SLAM coordinates next to a table full of chess pieces are how you
 dent a table.
 """
+import sys
+from pathlib import Path
+
+# repo root, for `motion.*` -- this file is two levels below it (motion/tools/)
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
+
 import argparse
 import math
 import os
-import sys
 
 from motion.config import BOARDS_FILE, BoardSpec, BoardTable
 from motion.slam_nav import SlamApproach
@@ -121,7 +136,7 @@ def main():
     table.validate()
     table.save(args.out)
     print(f"\nWrote {len(table.boards)} boards -> {args.out}")
-    print("Check it, then: python -m motion.test_tags --board 1")
+    print("Check it, then: uv run motion/test_tags.py --board 1")
 
 
 if __name__ == "__main__":

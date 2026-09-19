@@ -1,8 +1,18 @@
+# /// script
+# dependencies = [
+#   "bbos",
+#   "numpy",
+#   "opencv-python-headless",
+#   "pupil-apriltags",
+# ]
+# [tool.uv.sources]
+# bbos = { path = "/home/bracketbot/bbos", editable = true }
+# ///
 """The full 1-to-5 traversal, with a placeholder for the arms.
 
-    python -m motion.test_traversal --board 3      # one board, approach + align
-    python -m motion.test_traversal --cycles 1     # 1->5 once
-    python -m motion.test_traversal --cycles 0     # serpentine forever (Ctrl-C to stop)
+    uv run motion/test_traversal.py --board 3      # one board, approach + align
+    uv run motion/test_traversal.py --cycles 1     # 1->5 once
+    uv run motion/test_traversal.py --cycles 0     # serpentine forever (Ctrl-C to stop)
 
 Before running: stop bbapps/nav/main.py (two writers on drive.ctrl cancel each
 other), confirm SLAM is relocalized, and keep a hand on the e-stop.
@@ -12,6 +22,11 @@ own no-progress detector after ~8s. That is the expected result and doubles as
 a test of the stuck detector; use it to check the waypoints load and the
 camera/tag plumbing is alive, not to test the drive.
 """
+import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))   # repo root, for `motion.*`
+
 import argparse
 import time
 

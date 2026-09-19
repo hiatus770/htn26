@@ -80,7 +80,11 @@ class BoardSpec:
     name: str
     waypoint: tuple                       # SLAM (x, y, yaw_park) -- taught, never typed
     tags: dict                            # corner name -> AprilTag id
-    tag_span_m: float = 0.3390              # center-to-center distance between corner tags
+    tag_span_m: float = 0.3390             # center-to-center distance between corner tags;
+                                          # 0.339 = this robot's 33.9x33.9cm boards, tags at
+                                          # the corners. record_waypoints.py measures the
+                                          # real value per board anyway -- this is just the
+                                          # fallback when tag capture is skipped.
     standoff_m: float = 0.35              # parked distance from board center to base
     lateral_offset_m: float = 0.0         # + parks toward the board's +x (robot's right)
 
@@ -113,7 +117,7 @@ class BoardTable:
         except FileNotFoundError:
             raise FileNotFoundError(
                 f"{path} does not exist. Waypoints are taught, not typed -- run "
-                f"`python -m motion.tools.record_waypoints` and drive the robot to "
+                f"`uv run motion/tools/record_waypoints.py` and drive the robot to "
                 f"each board.") from None
         boards = []
         for b in raw.get("boards", []):
@@ -121,7 +125,7 @@ class BoardTable:
                 index=int(b["index"]), name=b.get("name", f"board-{b['index']}"),
                 waypoint=tuple(float(v) for v in b["waypoint"]),
                 tags={k: int(v) for k, v in b["tags"].items()},
-                tag_span_m=float(b.get("tag_span_m", raw.get("tag_span_m", 0.40))),
+                tag_span_m=float(b.get("tag_span_m", raw.get("tag_span_m", 0.339))),
                 standoff_m=float(b.get("standoff_m", raw.get("standoff_m", 0.35))),
                 lateral_offset_m=float(b.get("lateral_offset_m", 0.0)),
             ))

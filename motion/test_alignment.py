@@ -1,10 +1,20 @@
+# /// script
+# dependencies = [
+#   "bbos",
+#   "numpy",
+#   "opencv-python-headless",
+#   "pupil-apriltags",
+# ]
+# [tool.uv.sources]
+# bbos = { path = "/home/bracketbot/bbos", editable = true }
+# ///
 """Phase 2 only: micro-correct onto one board the robot is already near.
 
 Park the base roughly in front of the board first (teleop is fine) so the top
 camera can see its four tags, then:
 
-    python -m motion.test_alignment --board 1 --dry-run   # logs twists, no motion
-    python -m motion.test_alignment --board 1             # live, hand on the e-stop
+    uv run motion/test_alignment.py --board 1 --dry-run   # logs twists, no motion
+    uv run motion/test_alignment.py --board 1             # live, hand on the e-stop
 
 Run the dry pass first and check the signs: pushed to the LEFT of the board it
 should command a negative omega (turn right) or a leftward arc, never the
@@ -13,6 +23,11 @@ opposite. A sign error here drives the base into the table.
 bbapps/nav/main.py must NOT be running -- it publishes zero twists when idle
 and will fight every correction.
 """
+import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))   # repo root, for `motion.*`
+
 import argparse
 
 from motion.config import AlignParams, BoardTable

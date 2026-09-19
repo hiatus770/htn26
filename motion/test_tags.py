@@ -1,13 +1,28 @@
+# /// script
+# dependencies = [
+#   "bbos",
+#   "numpy",
+#   "opencv-python-headless",
+#   "pupil-apriltags",
+# ]
+# [tool.uv.sources]
+# bbos = { path = "/home/bracketbot/bbos", editable = true }
+# ///
 """Top camera / AprilTag check. Reads only -- the wheels never move.
 
-    python -m motion.test_tags                 # every tag the top camera sees
-    python -m motion.test_tags --board 1       # board 1's parking error, live
+    uv run motion/test_tags.py                 # every tag the top camera sees
+    uv run motion/test_tags.py --board 1       # board 1's parking error, live
 
 This is also the calibration check for the camera mount in motion/config.py:
 hold a tag at a measured distance and compare `dist` in the output. If it is
 consistently off, fix CameraMount (height/pitch) before trusting any alignment
 run; every centimetre of extrinsic error becomes a centimetre of parking error.
 """
+import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))   # repo root, for `motion.*`
+
 import argparse
 import math
 import time
