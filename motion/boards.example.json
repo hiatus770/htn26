@@ -1,0 +1,23 @@
+{
+  "tag_size_m": 0.05,
+  "boards": [
+    {
+      "index": 1,
+      "name": "board-1",
+      "waypoint": [1.243, -0.087, 1.5708],
+      "tags": {"near_left": 10, "near_right": 11, "far_right": 12, "far_left": 13},
+      "tag_span_m": 0.339,
+      "standoff_m": 0.35,
+      "lateral_offset_m": 0.0
+    },
+    {
+      "index": 2,
+      "name": "board-2",
+      "waypoint": [1.651, -0.091, 1.5708],
+      "tags": {"near_left": 20, "near_right": 21, "far_right": 22, "far_left": 23},
+      "tag_span_m": 0.339,
+      "standoff_m": 0.35,
+      "lateral_offset_m": 0.0
+    }
+  ]
+}
