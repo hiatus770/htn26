@@ -1,0 +1,6 @@
+.venv/
+chess.db
+chess.db-shm
+chess.db-wal
+__pycache__/
+.pytest_cache/

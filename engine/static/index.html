@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Chess Robot — Digital Twin</title>
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+  <header><h1>CHESS ROBOT</h1><p>DIGITAL TWIN / LIVE BOARD STATE</p><span id="connection">CONNECTING</span></header>
+  <main>
+    <section id="empty" class="empty">No session initialized. Use <code>POST /v1/session</code> to create the fixed board set.</section>
+    <section class="dashboard-layout">
+      <section id="detail" hidden>
+        <div class="detail-heading"><h2 id="detail-title"></h2><span id="detail-status"></span></div>
+        <div class="detail-layout">
+          <div id="large-board" class="board large-board" aria-label="Chess board"></div>
+          <div class="side-panel">
+            <dl id="facts"></dl>
+            <h3>MOVE HISTORY</h3><ol id="moves" class="moves"></ol>
+            <h3>CONTROLS</h3>
+            <div class="controls"><button id="forfeit-robot">Robot forfeits</button><button id="forfeit-player">Player forfeits</button><button id="restart">Restart board</button></div>
+            <label for="profile">Profile on restart</label><select id="profile"></select>
+            <p id="control-result" role="status"></p>
+          </div>
+        </div>
+      </section>
+      <aside class="boards-pane"><p class="pane-label">ALL BOARDS</p><section id="games" class="game-grid" aria-live="polite"></section></aside>
+    </section>
+  </main>
+  <template id="game-card"><article class="game-card"><div class="card-head"><h2></h2><span class="state"></span></div><div class="board mini-board"></div><p class="profile"></p><p class="last-move"></p><p class="evaluation"></p><p class="alert" hidden></p><button class="inspect">Inspect board</button></article></template>
+  <script src="/static/app.js"></script>
+</body>
+</html>

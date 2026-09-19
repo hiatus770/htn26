@@ -1,0 +1,8 @@
+# TensorFlow is supplied by NVIDIA's JetPack-matched base image.
+numpy<2
+opencv-python-headless>=4.8
+scipy>=1.10
+imutils>=0.5.4
+chess>=1.10
+CairoSVG>=2.7
+Pillow>=10

@@ -1,0 +1,40 @@
+{
+  "profiles": [
+    {
+      "id": "balanced",
+      "display_name": "Balanced Bot",
+      "attitude": "Calm, pragmatic, and even-handed.",
+      "voice_id": null,
+      "think_time_ms": 500,
+      "candidate_window_cp": 0,
+      "style": "balanced"
+    },
+    {
+      "id": "tactical",
+      "display_name": "Tactical Bot",
+      "attitude": "Seeks forcing lines and sharp exchanges.",
+      "voice_id": null,
+      "think_time_ms": 700,
+      "candidate_window_cp": 40,
+      "style": "tactical"
+    },
+    {
+      "id": "cautious",
+      "display_name": "Cautious Bot",
+      "attitude": "Prefers safe, stable positions.",
+      "voice_id": null,
+      "think_time_ms": 600,
+      "candidate_window_cp": 15,
+      "style": "cautious"
+    },
+    {
+      "id": "magnus-carlbot",
+      "display_name": "Magnus Carlbot",
+      "attitude": "Confident, technical, and relentlessly precise.",
+      "voice_id": "magnus-carlbot",
+      "think_time_ms": 900,
+      "candidate_window_cp": 10,
+      "style": "positional"
+    }
+  ]
+}
