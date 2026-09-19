@@ -21,7 +21,8 @@ import numpy as np
 from bbos import Config, Reader
 
 from motion.board_pose import BoardObservation, TagError, board_observation
-from motion.config import HEAD_HFOV_DEG_FALLBACK, HEAD_INTRINSICS_OVERRIDE, TOP_CAMERA
+from motion.config import (HEAD_DIST_MODEL, HEAD_DIST_OVERRIDE, HEAD_HFOV_DEG_FALLBACK,
+                           HEAD_INTRINSICS_OVERRIDE, TOP_CAMERA)
 
 try:
     from pupil_apriltags import Detector as _AprilDetector
@@ -45,6 +46,12 @@ class Intrinsics:
     width: int
     height: int
     dist: np.ndarray
+    # Which OpenCV distortion model `dist` belongs to. "fisheye" (4 coeffs,
+    # cv2.fisheye's equidistant model) and "standard" (5+ coeffs, the usual
+    # radial-tangential model) apply completely different warp equations to
+    # the same coefficient shape -- using the wrong one silently applies the
+    # wrong correction. "none" = dist is empty/zero, no correction applied.
+    model: str = "none"
 
     @property
     def mtx(self):
@@ -53,8 +60,9 @@ class Intrinsics:
                          [0.0, 0.0, 1.0]], dtype=np.float64)
 
     def __str__(self):
+        tag = f" dist={self.model}" if self.model != "none" else ""
         return (f"fx={self.fx:.1f} fy={self.fy:.1f} cx={self.cx:.1f} "
-                f"cy={self.cy:.1f} {self.width}x{self.height}")
+                f"cy={self.cy:.1f} {self.width}x{self.height}{tag}")
 
 
 def head_eye_intrinsics():
@@ -76,7 +84,11 @@ def head_eye_intrinsics():
     width, height = int(cfg_c.width) // 2, int(cfg_c.height)
     if HEAD_INTRINSICS_OVERRIDE is not None:
         fx, fy, cx, cy = (float(v) for v in HEAD_INTRINSICS_OVERRIDE)
-        return Intrinsics(fx, fy, cx, cy, width, height, np.zeros(5)), True
+        if HEAD_DIST_OVERRIDE is not None:
+            dist, model = np.asarray(HEAD_DIST_OVERRIDE, dtype=np.float64), HEAD_DIST_MODEL
+        else:
+            dist, model = np.zeros(0), "none"
+        return Intrinsics(fx, fy, cx, cy, width, height, dist, model), True
     try:
         cal = Config("depth").camera_cal()
     except FileNotFoundError as e:
@@ -84,17 +96,26 @@ def head_eye_intrinsics():
         cx, cy = width / 2.0, height / 2.0
         print(f"[tags] WARNING: no depth calibration on this robot ({e}). Using "
               f"an UNCALIBRATED pinhole guess: fx=fy={fx:.0f}px (assumed "
-              f"{HEAD_HFOV_DEG_FALLBACK:.0f}deg HFOV), cx={cx:.0f} cy={cy:.0f}. "
-              f"Hold a tag at a measured distance, compare against `dist=` "
-              f"below, and set HEAD_INTRINSICS_OVERRIDE in motion/config.py "
-              f"once it tracks -- every centimetre of error here becomes a "
-              f"centimetre of parking error.")
-        return Intrinsics(fx, fy, cx, cy, width, height, np.zeros(5)), False
+              f"{HEAD_HFOV_DEG_FALLBACK:.0f}deg HFOV), cx={cx:.0f} cy={cy:.0f}, NO "
+              f"distortion correction. Hold a tag at a measured distance, compare "
+              f"against `dist=` below, and set HEAD_INTRINSICS_OVERRIDE in "
+              f"motion/config.py once it tracks -- every centimetre of error here "
+              f"becomes a centimetre of parking error. This lens also appears to be "
+              f"a fisheye (see motion.md) -- see HEAD_DIST_OVERRIDE if you obtain "
+              f"real distortion coefficients.")
+        return Intrinsics(fx, fy, cx, cy, width, height, np.zeros(0), "none"), False
     mtx_l = np.asarray(cal[0], dtype=np.float64)
     dist_l = np.asarray(cal[1], dtype=np.float64).ravel()
+    # stereo_calibration_fisheye.yaml strongly implies this camera was
+    # calibrated with cv2.fisheye's equidistant model (always exactly 4
+    # coefficients: k1,k2,k3,k4) -- NOT the standard 5+-coefficient
+    # radial-tangential model. Dispatch on coefficient count so _undistort()
+    # calls the matching cv2.fisheye.* API instead of silently applying the
+    # wrong warp equations with the right-shaped-but-wrong-model numbers.
+    model = "fisheye" if dist_l.size == 4 else "standard"
     return Intrinsics(float(mtx_l[0, 0]), float(mtx_l[1, 1]),
                       float(mtx_l[0, 2]), float(mtx_l[1, 2]),
-                      width, height, dist_l), True
+                      width, height, dist_l, model), True
 
 
 @dataclass
@@ -161,14 +182,26 @@ class TopCameraTags:
         """pupil_apriltags' pose solver assumes a pinhole camera, so the
         distortion has to come out of the image rather than be carried in the
         model. Works on grayscale (detect()) or BGR (detect_bgr()) alike --
-        cv2.remap doesn't care how many channels it's given."""
+        cv2.remap doesn't care how many channels it's given.
+
+        Dispatches on intr.model: a fisheye lens (see stereo_calibration_
+        fisheye.yaml / HEAD_DIST_MODEL) needs cv2.fisheye's own rectify map,
+        not the standard one -- they implement different warp equations over
+        the same-shaped coefficient array, so calling the wrong one silently
+        produces a wrong (if plausible-looking) correction."""
         intr = self.intrinsics
-        if intr.dist is None or not np.any(intr.dist):
+        if intr.model == "none" or intr.dist is None or intr.dist.size == 0 \
+                or not np.any(intr.dist):
             return img
         if self._maps is None:
             h, w = img.shape[:2]
-            self._maps = cv2.initUndistortRectifyMap(
-                intr.mtx, intr.dist, None, intr.mtx, (w, h), cv2.CV_16SC2)
+            if intr.model == "fisheye":
+                D = intr.dist.reshape(4, 1)
+                self._maps = cv2.fisheye.initUndistortRectifyMap(
+                    intr.mtx, D, np.eye(3), intr.mtx, (w, h), cv2.CV_16SC2)
+            else:
+                self._maps = cv2.initUndistortRectifyMap(
+                    intr.mtx, intr.dist, None, intr.mtx, (w, h), cv2.CV_16SC2)
         return cv2.remap(img, self._maps[0], self._maps[1], cv2.INTER_LINEAR)
 
     def read_frame(self, block=False, timeout=1.0):

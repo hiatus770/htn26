@@ -70,6 +70,18 @@ TOP_CAMERA = CameraMount()
 # two, since that error scales directly into every parking error downstream.
 HEAD_INTRINSICS_OVERRIDE = None
 
+# Distortion coefficients to pair with the override above. The head camera's
+# calibration file is named "stereo_calibration_fisheye.yaml" -- a strong hint
+# this lens needs OpenCV's FISHEYE model (k1,k2,k3,k4, always exactly 4
+# coefficients), not the standard radial-tangential model (5+ coefficients).
+# Getting this wrong applies the wrong warp equations, so HEAD_DIST_MODEL must
+# actually match whatever coefficients you put here. Leave HEAD_DIST_OVERRIDE
+# None to apply no distortion correction at all (the current state: nothing
+# in motion/tags.py corrects the lens warp until real coefficients exist here
+# or in a working Config("depth") calibration).
+HEAD_DIST_OVERRIDE = None       # e.g. (k1, k2, k3, k4) for the fisheye model
+HEAD_DIST_MODEL = "fisheye"     # "fisheye" or "standard" -- must match the coefficients
+
 # Only used when the fallback above kicks in. A rough guess for this eye's
 # horizontal field of view in degrees -- unknown for this hardware, so treat
 # the resulting fx/fy as a starting point to tune via HEAD_INTRINSICS_OVERRIDE,

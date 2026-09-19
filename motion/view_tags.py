@@ -84,6 +84,10 @@ def draw_overlay(frame_bgr, dets, cam, board=None):
                     (10, y), cv2.FONT_HERSHEY_SIMPLEX, 0.6, RED, 2, cv2.LINE_AA)
         y += 26
         banner += "  [GUESS]"
+    if intr.model == "none":
+        banner += "  dist=NONE (lens warp NOT corrected)"
+    else:
+        banner += f"  dist={intr.model}"
     cv2.putText(img, banner, (10, y), cv2.FONT_HERSHEY_SIMPLEX, 0.5, CYAN, 1,
                 cv2.LINE_AA)
     y += 22
