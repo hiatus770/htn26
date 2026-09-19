@@ -59,7 +59,22 @@ TOP_CAMERA = CameraMount()
 # changes how the daemon rectifies (bbapps/nav/main.py:127-131). Leave None to
 # derive them from Config("depth").camera_cal(); set (fx, fy, cx, cy) to pin
 # them after calibrating against a tag at a known distance.
+#
+# On a robot where depth/stereo has never been calibrated (no
+# stereo_calibration_fisheye.yaml -- happens on freshly-flashed or
+# non-depth-equipped units), Config("depth").camera_cal() has nothing to
+# return, and motion/tags.py falls back to a pinhole guess from
+# HEAD_HFOV_DEG_FALLBACK below instead of crashing. That guess is NOT
+# calibrated -- pin real numbers here the moment test_tags.py's `dist=`
+# distance check disagrees with a tape measure by more than a centimeter or
+# two, since that error scales directly into every parking error downstream.
 HEAD_INTRINSICS_OVERRIDE = None
+
+# Only used when the fallback above kicks in. A rough guess for this eye's
+# horizontal field of view in degrees -- unknown for this hardware, so treat
+# the resulting fx/fy as a starting point to tune via HEAD_INTRINSICS_OVERRIDE,
+# not as ground truth.
+HEAD_HFOV_DEG_FALLBACK = 90.0
 
 
 # --- Boards ------------------------------------------------------------------

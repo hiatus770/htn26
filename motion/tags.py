@@ -12,6 +12,7 @@ the known corner layout, not from a single tag's orientation: a single
 AprilTag's rotation is famously ambiguous when viewed near head-on, while
 three or four centers pin the board down cleanly.
 """
+import math
 import time
 from dataclasses import dataclass
 
@@ -20,7 +21,7 @@ import numpy as np
 from bbos import Config, Reader
 
 from motion.board_pose import BoardObservation, TagError, board_observation
-from motion.config import HEAD_INTRINSICS_OVERRIDE, TOP_CAMERA
+from motion.config import HEAD_HFOV_DEG_FALLBACK, HEAD_INTRINSICS_OVERRIDE, TOP_CAMERA
 
 try:
     from pupil_apriltags import Detector as _AprilDetector
@@ -63,13 +64,32 @@ def head_eye_intrinsics():
     the daemon rectifies the way the stock pipeline does, and a reflash has
     broken that before (bbapps/nav/main.py:127-131). Pin
     HEAD_INTRINSICS_OVERRIDE once you have verified them with test_tags.py.
+
+    On a robot where depth/stereo was never calibrated, Config("depth")
+    .camera_cal() has no file to load and raises FileNotFoundError. Rather
+    than crash the whole tag pipeline over a calibration file this robot may
+    simply never need for anything else, fall back to an uncalibrated pinhole
+    guess and say so loudly -- test_tags.py's distance check is exactly the
+    tool for turning that guess into a real HEAD_INTRINSICS_OVERRIDE.
     """
     cfg_c = Config("cam_head")
     width, height = int(cfg_c.width) // 2, int(cfg_c.height)
     if HEAD_INTRINSICS_OVERRIDE is not None:
         fx, fy, cx, cy = (float(v) for v in HEAD_INTRINSICS_OVERRIDE)
         return Intrinsics(fx, fy, cx, cy, width, height, np.zeros(5))
-    cal = Config("depth").camera_cal()
+    try:
+        cal = Config("depth").camera_cal()
+    except FileNotFoundError as e:
+        fx = fy = (width / 2.0) / math.tan(math.radians(HEAD_HFOV_DEG_FALLBACK) / 2.0)
+        cx, cy = width / 2.0, height / 2.0
+        print(f"[tags] WARNING: no depth calibration on this robot ({e}). Using "
+              f"an UNCALIBRATED pinhole guess: fx=fy={fx:.0f}px (assumed "
+              f"{HEAD_HFOV_DEG_FALLBACK:.0f}deg HFOV), cx={cx:.0f} cy={cy:.0f}. "
+              f"Hold a tag at a measured distance, compare against `dist=` "
+              f"below, and set HEAD_INTRINSICS_OVERRIDE in motion/config.py "
+              f"once it tracks -- every centimetre of error here becomes a "
+              f"centimetre of parking error.")
+        return Intrinsics(fx, fy, cx, cy, width, height, np.zeros(5))
     mtx_l = np.asarray(cal[0], dtype=np.float64)
     dist_l = np.asarray(cal[1], dtype=np.float64).ravel()
     return Intrinsics(float(mtx_l[0, 0]), float(mtx_l[1, 1]),
