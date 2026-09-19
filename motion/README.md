@@ -4,6 +4,10 @@ The 1-to-5 loop: SLAM drives the base to the next board, the top camera's
 AprilTags micro-correct it into the workspace, the base holds while the arms
 play, then on to the next board.
 
+This is the technical reference — architecture, bring-up, tolerances,
+conventions. For current status, what's verified vs. not, and the TODO list,
+see **`motion.md`** in this same folder.
+
 ```
 BoardTraversal            the loop; owns everything below
 ├── SlamApproach          phase 1: slam.pose -> turn / cruise / turn
@@ -22,7 +26,11 @@ BoardTraversal            the loop; owns everything below
    45° pitch, forward offset. No bbapps config carries a `T_base_cam` for the
    head camera, so these are ours to get right, and every centimetre of
    extrinsic error becomes a centimetre of parking error.
-3. **Nothing to install by hand.** Every script below is run with `uv run` and
+3. **If depth/stereo was never calibrated on this robot**, `test_tags.py`
+   will print a loud `WARNING: no depth calibration...` and fall back to an
+   uncalibrated pinhole guess instead of crashing. That guess needs the same
+   tuning as the camera mount — see the Troubleshooting entry below.
+4. **Nothing to install by hand.** Every script below is run with `uv run` and
    carries its own PEP 723 dependency block at the top (same convention as
    every script in `bbapps/`), so `uv` resolves `pupil-apriltags`, opencv and
    numpy into an ephemeral env on first run. No `pip install` needed.
@@ -111,3 +119,21 @@ board coordinates — more accurate and much faster than shuffling the base.
 Re-run `uv run motion/test_geometry.py` after touching any sign, gain or frame
 convention. It catches a correction that pushes the base toward the table
 before any wheel turns.
+
+## Troubleshooting
+
+Real issues hit bringing this up on `bracketbot-0185` — see `motion.md` for
+the full status/TODO, this is just the quick reference.
+
+| Symptom | Cause | Fix |
+|---|---|---|
+| `ModuleNotFoundError: No module named 'motion'` under `uv run` | Running a `.py` file directly (rather than `python -m`) doesn't put the repo root on `sys.path` the way `-m` does | Already fixed — every entry script inserts the repo root itself. If you still see this, your checkout predates that fix; `git pull` / check you're on `motion-uv-run-fixes` or later. |
+| `ps aux \| grep -E "nav/main.py\|teleop.py"` shows a hit, with a different PID every time | Classic self-match: `grep`'s own command line contains your search pattern, so it matches itself in the process list | Use `pgrep -fa "nav/main.py\|teleop.py"` instead — it excludes its own PID by design. If that prints nothing, nothing is actually running. |
+| `grep -l "daemon.py slam" /proc/*/cmdline` only matches `/proc/self/cmdline` / `/proc/thread-self/cmdline` | Same self-match, one level deeper: those two are magic symlinks that always resolve to whoever's currently reading them (i.e. `grep` itself) | `pgrep -fa "daemon.py slam"` — no self-match. |
+| `SlamUnavailable: no slam.pose within...` | No SLAM daemon running on this robot (confirmed via the `pgrep` check above + a full `ls /dev/shm/` showing every other daemon but no `slam*` topic) | Outside this repo's scope — `p_slam` lives in `bbos`. See `motion.md`'s "Known hardware gaps" for what this blocks and the fallback options. |
+| `FileNotFoundError: .../stereo_calibration_fisheye.yaml` from `Config("depth").camera_cal()` | Depth/stereo was never calibrated on this robot | Fixed — `head_eye_intrinsics()` now catches this and falls back to an uncalibrated pinhole guess, with a loud warning. Tune it: hold a tag at a measured distance, compare `dist=`, pin `HEAD_INTRINSICS_OVERRIDE` in `config.py`. |
+| `tag layout fit is NNmm RMS (limit 30mm)` | Wrong `tag_span_m`, or a corner id typo in `boards.json` | Re-measure / re-teach that board. |
+| `solved normal points away from the robot` | near/far corners swapped in `boards.json` | Swap `near_left`↔`far_left` and `near_right`↔`far_right` for that board. |
+| Correction pushes the *wrong* way | Camera extrinsic or a sign is wrong | Stop, re-run `test_geometry.py`, redo the camera-mount distance check. |
+| Alignment hunts, never settles | Tag detection noisier than the tolerance | Loosen `AlignParams.lat_tol_m`/`range_tol_m` in `config.py`. |
+| Twists seem to get randomly zeroed | Another writer on `drive.ctrl` | Confirm `nav/main.py`/`teleop.py` aren't running (via `pgrep`, not `ps \| grep`). |
