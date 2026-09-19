@@ -76,7 +76,7 @@ def head_eye_intrinsics():
     width, height = int(cfg_c.width) // 2, int(cfg_c.height)
     if HEAD_INTRINSICS_OVERRIDE is not None:
         fx, fy, cx, cy = (float(v) for v in HEAD_INTRINSICS_OVERRIDE)
-        return Intrinsics(fx, fy, cx, cy, width, height, np.zeros(5))
+        return Intrinsics(fx, fy, cx, cy, width, height, np.zeros(5)), True
     try:
         cal = Config("depth").camera_cal()
     except FileNotFoundError as e:
@@ -89,12 +89,12 @@ def head_eye_intrinsics():
               f"below, and set HEAD_INTRINSICS_OVERRIDE in motion/config.py "
               f"once it tracks -- every centimetre of error here becomes a "
               f"centimetre of parking error.")
-        return Intrinsics(fx, fy, cx, cy, width, height, np.zeros(5))
+        return Intrinsics(fx, fy, cx, cy, width, height, np.zeros(5)), False
     mtx_l = np.asarray(cal[0], dtype=np.float64)
     dist_l = np.asarray(cal[1], dtype=np.float64).ravel()
     return Intrinsics(float(mtx_l[0, 0]), float(mtx_l[1, 1]),
                       float(mtx_l[0, 2]), float(mtx_l[1, 2]),
-                      width, height, dist_l)
+                      width, height, dist_l), True
 
 
 @dataclass
@@ -103,6 +103,9 @@ class TagDetection:
     p_base: np.ndarray      # tag center in the base frame (x fwd, y left, z up)
     p_cam: np.ndarray       # tag center in camera coords, for debugging
     margin: float
+    corners: np.ndarray = None    # 4x2 pixel coords in the (undistorted, cropped)
+                                  # left-eye image -- for drawing, see view_tags.py
+    center: np.ndarray = None     # 2, pixel coords, same image
 
 
 class TopCameraTags:
@@ -120,6 +123,7 @@ class TopCameraTags:
         self.T_base_cam = self.mount.T_base_cam()
         self.log = log
         self._intr = intrinsics
+        self.calibrated = intrinsics is not None   # caller-supplied intrinsics: trust it
         self._det = _AprilDetector(families=families, nthreads=nthreads,
                                    quad_decimate=quad_decimate, refine_edges=1)
         self._r = None
@@ -129,8 +133,9 @@ class TopCameraTags:
 
     def __enter__(self):
         if self._intr is None:
-            self._intr = head_eye_intrinsics()
-            self.log(f"[tags] head left-eye intrinsics: {self._intr}")
+            self._intr, self.calibrated = head_eye_intrinsics()
+            self.log(f"[tags] head left-eye intrinsics: {self._intr}"
+                     f"{'' if self.calibrated else '  [UNCALIBRATED GUESS]'}")
         self._r = Reader(TOPIC)
         self._r.__enter__()
         return self
@@ -147,23 +152,24 @@ class TopCameraTags:
     @property
     def intrinsics(self):
         if self._intr is None:
-            self._intr = head_eye_intrinsics()
+            self._intr, self.calibrated = head_eye_intrinsics()
         return self._intr
 
     # --- frame plumbing ---
 
-    def _undistort(self, gray):
+    def _undistort(self, img):
         """pupil_apriltags' pose solver assumes a pinhole camera, so the
         distortion has to come out of the image rather than be carried in the
-        model."""
+        model. Works on grayscale (detect()) or BGR (detect_bgr()) alike --
+        cv2.remap doesn't care how many channels it's given."""
         intr = self.intrinsics
         if intr.dist is None or not np.any(intr.dist):
-            return gray
+            return img
         if self._maps is None:
-            h, w = gray.shape[:2]
+            h, w = img.shape[:2]
             self._maps = cv2.initUndistortRectifyMap(
                 intr.mtx, intr.dist, None, intr.mtx, (w, h), cv2.CV_16SC2)
-        return cv2.remap(gray, self._maps[0], self._maps[1], cv2.INTER_LINEAR)
+        return cv2.remap(img, self._maps[0], self._maps[1], cv2.INTER_LINEAR)
 
     def read_frame(self, block=False, timeout=1.0):
         """Latest left-eye grayscale frame, or None if nothing new is up."""
@@ -202,9 +208,55 @@ class TopCameraTags:
             p_cam = np.asarray(r.pose_t, dtype=np.float64).reshape(3)
             p_base = (self.T_base_cam[:3, :3] @ p_cam) + self.T_base_cam[:3, 3]
             out.append(TagDetection(int(r.tag_id), p_base, p_cam,
-                                    float(getattr(r, "decision_margin", 0.0))))
+                                    float(getattr(r, "decision_margin", 0.0)),
+                                    np.asarray(r.corners, dtype=np.float64),
+                                    np.asarray(r.center, dtype=np.float64)))
         self.last_detections = out
         return out, stamp
+
+    def detect_bgr(self, block=False, timeout=1.0):
+        """Like detect(), but also returns the color (BGR) left-eye frame it
+        detected on, pixel-aligned with each TagDetection.corners/.center.
+
+        Kept as its own method rather than adding a color option to
+        detect()/read_frame(): those two are on the hot path for the
+        (already hardware-tested) alignment loop, and duplicating a few lines
+        here is a lot cheaper than risking that path for a feature only the
+        live viewer (view_tags.py) needs.
+        """
+        if self._r is None:
+            raise TagError("TopCameraTags used outside its context manager")
+        t0 = time.time()
+        while True:
+            if self._r.ready():
+                payload = bytes(self._r.data["jpeg"][:self._r.data["jpeg_len"]])
+                stamp = time.time()
+                color = cv2.imdecode(np.frombuffer(payload, dtype=np.uint8),
+                                     cv2.IMREAD_COLOR)
+                if color is None:
+                    raise TagError("camera.head.jpeg published an undecodable frame")
+                left = np.ascontiguousarray(color[:, :color.shape[1] // 2])
+                left = self._undistort(left)      # cv2.remap handles 3-channel input fine
+                gray = cv2.cvtColor(left, cv2.COLOR_BGR2GRAY)
+                intr = self.intrinsics
+                raw = self._det.detect(
+                    gray, estimate_tag_pose=True,
+                    camera_params=(intr.fx, intr.fy, intr.cx, intr.cy),
+                    tag_size=self.tag_size_m)
+                out = []
+                for r in raw:
+                    p_cam = np.asarray(r.pose_t, dtype=np.float64).reshape(3)
+                    p_base = (self.T_base_cam[:3, :3] @ p_cam) + self.T_base_cam[:3, 3]
+                    out.append(TagDetection(int(r.tag_id), p_base, p_cam,
+                                            float(getattr(r, "decision_margin", 0.0)),
+                                            np.asarray(r.corners, dtype=np.float64),
+                                            np.asarray(r.center, dtype=np.float64)))
+                self.last_detections = out
+                self.last_frame_stamp = stamp
+                return out, left, stamp
+            if not block or time.time() - t0 > timeout:
+                return None, None, 0.0
+            time.sleep(0.002)
 
     def observe(self, board, max_residual=0.03, block=False, timeout=1.0):
         """One BoardObservation, or None if there was no new frame / too few tags."""

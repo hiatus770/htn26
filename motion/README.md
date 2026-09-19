@@ -15,6 +15,10 @@ BoardTraversal            the loop; owns everything below
 │   └── board_pose        tag centers -> board pose -> parking error
 ├── TagAligner            phase 2: turn / drive / turn at centimetre scale
 └── DriveBus              the only writer of drive.ctrl in this repo
+
+view_tags.py              live annotated MJPEG feed built on TopCameraTags --
+                          read-only, no DriveBus, for calibrating the camera
+                          mount/intrinsics and previewing a board's fit
 ```
 
 ## Before anything moves
@@ -30,6 +34,7 @@ BoardTraversal            the loop; owns everything below
    will print a loud `WARNING: no depth calibration...` and fall back to an
    uncalibrated pinhole guess instead of crashing. That guess needs the same
    tuning as the camera mount — see the Troubleshooting entry below.
+   `view_tags.py` (below) shows the same warning as an on-screen red banner.
 4. **Nothing to install by hand.** Every script below is run with `uv run` and
    carries its own PEP 723 dependency block at the top (same convention as
    every script in `bbapps/`), so `uv` resolves `pupil-apriltags`, opencv and
@@ -48,6 +53,12 @@ uv run motion/test_geometry.py
 # 1. camera + tags, no motion. Hold a tag at a measured distance and check
 #    `dist` in the output; that validates CameraMount and the intrinsics.
 uv run motion/test_tags.py
+
+# 1b. same thing, but as a live annotated MJPEG feed in a browser -- easier
+#     to calibrate against than scrolling terminal text. Read-only, safe to
+#     leave running alongside anything else.
+uv run motion/view_tags.py
+#     -> open http://<robot-hostname>.local:8022/
 
 # 2. teach the waypoints. Drive with `uv run bbapps/teleop.py` in another
 #    terminal -- this script only reads slam.pose, so there is no writer conflict.

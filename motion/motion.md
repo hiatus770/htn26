@@ -37,6 +37,19 @@ up to date).
   convergence under simulated sway) — all checks passing.
 - Live camera + AprilTag detection on `bracketbot-0185` (`uv run
   motion/test_tags.py`) — working, after fixing the two hardware gaps below.
+  Tags 10/11/12 detected at healthy margins (44-58); tag 13 not seen yet in
+  the same session (likely just out of frame). Frame-to-frame distance jitter
+  of a few cm on a static tag is expected right now — some mix of the
+  segway's continuous balancing sway and the still-uncalibrated intrinsics
+  guess, not a bug.
+
+**New tool:** `uv run motion/view_tags.py` — live MJPEG feed (browser,
+`:8022`) with detected tags outlined and labeled with id/distance/margin, plus
+an on-screen red banner when running on the uncalibrated intrinsics fallback.
+Built specifically to make the `HEAD_INTRINSICS_OVERRIDE` tuning loop (hold a
+tag at a measured distance, compare, adjust) visual instead of
+terminal-scrollback-based. `--board N` overlays that board's live lat/range/yaw
+fit too.
 
 **Not yet verified live** (either blocked or just not run yet):
 - `test_alignment.py` — phase 2 micro-correction on a real board.
@@ -79,7 +92,9 @@ re-diagnoses them from scratch.
 
 ## TODO, in order
 
-- [ ] Tune `HEAD_INTRINSICS_OVERRIDE` against a measured tag distance.
+- [ ] Tune `HEAD_INTRINSICS_OVERRIDE` against a measured tag distance —
+      use `uv run motion/view_tags.py` for live visual feedback while doing
+      this.
 - [ ] Confirm/measure `CameraMount` in `config.py` (height/pitch/forward) —
       `test_tags.py`'s `dist=` check is also the validation for this.
 - [ ] Decide how to handle the missing SLAM daemon (see options below) —
