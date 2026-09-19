@@ -19,6 +19,8 @@ BoardTraversal            the loop; owns everything below
 view_tags.py              live annotated MJPEG feed built on TopCameraTags --
                           read-only, no DriveBus, for calibrating the camera
                           mount/intrinsics and previewing a board's fit
+tools/calibrate_fisheye.py  solves for real fisheye distortion coefficients
+                          using the chess board itself as the target
 ```
 
 ## Before anything moves
@@ -35,6 +37,11 @@ view_tags.py              live annotated MJPEG feed built on TopCameraTags --
    uncalibrated pinhole guess instead of crashing. That guess needs the same
    tuning as the camera mount — see the Troubleshooting entry below.
    `view_tags.py` (below) shows the same warning as an on-screen red banner.
+4. **If the lens looks visibly warped in `view_tags.py`** (this camera's
+   calibration file is literally named `stereo_calibration_fisheye.yaml` —
+   it's a fisheye lens), that warp is uncorrected until real distortion
+   coefficients exist. `motion/tools/calibrate_fisheye.py` gets them using
+   the chess board itself as the calibration target — see below.
 4. **Nothing to install by hand.** Every script below is run with `uv run` and
    carries its own PEP 723 dependency block at the top (same convention as
    every script in `bbapps/`), so `uv` resolves `pupil-apriltags`, opencv and
@@ -59,6 +66,12 @@ uv run motion/test_tags.py
 #     leave running alongside anything else.
 uv run motion/view_tags.py
 #     -> open http://<robot-hostname>.local:8022/
+
+# 1c. full fisheye distortion calibration (not just focal length/center),
+#     using the chess board itself as the target -- no printed checkerboard
+#     needed. Only needed once per robot; see the "Lens distortion" section
+#     below for why this matters and what it does.
+uv run motion/tools/calibrate_fisheye.py --tags 10,11,12,13
 
 # 2. teach the waypoints. Drive with `uv run bbapps/teleop.py` in another
 #    terminal -- this script only reads slam.pose, so there is no writer conflict.
@@ -131,6 +144,43 @@ Re-run `uv run motion/test_geometry.py` after touching any sign, gain or frame
 convention. It catches a correction that pushes the base toward the table
 before any wheel turns.
 
+## Lens distortion
+
+The head camera's calibration file is named `stereo_calibration_fisheye.yaml`
+— a strong signal it's a genuine fisheye lens, not a mild wide-angle one.
+`pupil_apriltags`' pose solver assumes a rectilinear (pinhole) image; feeding
+it a raw fisheye frame with no correction systematically biases every pose
+near the edges of the frame (worst there, ~zero at the center), and is a
+likely contributor to the occasional `Error, more than one new minima found`
+pupil_apriltags prints — a warped quad doesn't cleanly match what the solver
+expects a flat square to project to.
+
+Getting this right needs two separate things, both in `config.py`:
+- `HEAD_INTRINSICS_OVERRIDE` (fx, fy, cx, cy) — the pinhole part.
+- `HEAD_DIST_OVERRIDE` (k1, k2, k3, k4) + `HEAD_DIST_MODEL` — the distortion
+  part. This robot needs `"fisheye"` (OpenCV's separate 4-coefficient
+  equidistant model), not the standard 5+-coefficient radial-tangential
+  model — `_undistort()` in `tags.py` dispatches to the matching
+  `cv2.fisheye.*` API based on `HEAD_DIST_MODEL`, and getting this wrong
+  applies the wrong warp equations, not just "no correction."
+
+`motion/tools/calibrate_fisheye.py` solves for both at once, using the chess
+board itself as the calibration target (no printed checkerboard needed) —
+see that script's docstring for the full design rationale, including two
+non-obvious things it had to get right:
+1. Each tag's 4 corners come back in **that tag's own internal order**, which
+   has nothing to do with how the tag is physically mounted on the board —
+   the script resolves each tag's real mounting rotation automatically from
+   a rough board-pose fit before using its corners for anything. This isn't
+   optional; assuming a fixed corner order silently produces a confidently
+   wrong calibration.
+2. The underlying `cv2.fisheye.calibrate()` call needed a **two-stage solve**
+   (pinhole-only first, then the full model seeded from that result) to
+   converge reliably — going straight for the full model, even with a
+   reasonable initial guess, diverged in roughly 1 in 5-10 trials during
+   testing. Validated against a synthetic fisheye ground truth (20+ random
+   seeds, 0 failures) before ever pointing it at a real camera.
+
 ## Troubleshooting
 
 Real issues hit bringing this up on `bracketbot-0185` — see `motion.md` for
@@ -143,6 +193,8 @@ the full status/TODO, this is just the quick reference.
 | `grep -l "daemon.py slam" /proc/*/cmdline` only matches `/proc/self/cmdline` / `/proc/thread-self/cmdline` | Same self-match, one level deeper: those two are magic symlinks that always resolve to whoever's currently reading them (i.e. `grep` itself) | `pgrep -fa "daemon.py slam"` — no self-match. |
 | `SlamUnavailable: no slam.pose within...` | No SLAM daemon running on this robot (confirmed via the `pgrep` check above + a full `ls /dev/shm/` showing every other daemon but no `slam*` topic) | Outside this repo's scope — `p_slam` lives in `bbos`. See `motion.md`'s "Known hardware gaps" for what this blocks and the fallback options. |
 | `FileNotFoundError: .../stereo_calibration_fisheye.yaml` from `Config("depth").camera_cal()` | Depth/stereo was never calibrated on this robot | Fixed — `head_eye_intrinsics()` now catches this and falls back to an uncalibrated pinhole guess, with a loud warning. Tune it: hold a tag at a measured distance, compare `dist=`, pin `HEAD_INTRINSICS_OVERRIDE` in `config.py`. |
+| Visible lens warp in `view_tags.py`; `dist=` drifts as a tag moves across the frame at a fixed distance | Genuine fisheye distortion, uncorrected (no `HEAD_DIST_OVERRIDE` set yet) | Run `uv run motion/tools/calibrate_fisheye.py --tags a,b,c,d` — see the Lens distortion section above. |
+| `cv2.fisheye.calibrate failed` / `Ill-conditioned` from `calibrate_fisheye.py` | Not enough view diversity, or a near-degenerate pose | Re-run with more `--frames` and spread distances/positions/tilts more (see the script's on-screen guidance). |
 | `tag layout fit is NNmm RMS (limit 30mm)` | Wrong `tag_span_m`, or a corner id typo in `boards.json` | Re-measure / re-teach that board. |
 | `solved normal points away from the robot` | near/far corners swapped in `boards.json` | Swap `near_left`↔`far_left` and `near_right`↔`far_right` for that board. |
 | Correction pushes the *wrong* way | Camera extrinsic or a sign is wrong | Stop, re-run `test_geometry.py`, redo the camera-mount distance check. |

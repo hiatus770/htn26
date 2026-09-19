@@ -89,12 +89,25 @@ re-diagnoses them from scratch.
      compare against `dist=` in `test_tags.py`'s output, and pin
      `HEAD_INTRINSICS_OVERRIDE = (fx, fy, cx, cy)` in `config.py` once it
      tracks. Every centimetre of error here is a centimetre of parking error.
+   - **The camera is a genuine fisheye** (the calibration filename says so),
+     confirmed visually by the user in `view_tags.py`'s feed. Uncorrected,
+     this biases every tag pose worst near the frame edges. Built
+     `motion/tools/calibrate_fisheye.py` to solve for real fisheye
+     distortion coefficients (not just fx/fy/cx/cy) using the chess board
+     itself as the calibration target — see `README.md`'s "Lens distortion"
+     section for the two non-obvious things it had to get right (per-tag
+     corner-order resolution, a two-stage solve for numerical stability),
+     both validated against a synthetic ground truth (20+ seeds, 0 failures)
+     before ever running it on hardware. Not yet run on real hardware.
 
 ## TODO, in order
 
-- [ ] Tune `HEAD_INTRINSICS_OVERRIDE` against a measured tag distance —
-      use `uv run motion/view_tags.py` for live visual feedback while doing
-      this.
+- [ ] Run `uv run motion/tools/calibrate_fisheye.py --tags <ids>` on the
+      real robot, paste the resulting `HEAD_INTRINSICS_OVERRIDE`/
+      `HEAD_DIST_OVERRIDE` into `config.py`, and verify with
+      `uv run motion/view_tags.py` (slide a tag from center toward an edge
+      at a fixed distance -- `dist=` should stay put, where before it
+      drifted with position).
 - [ ] Confirm/measure `CameraMount` in `config.py` (height/pitch/forward) —
       `test_tags.py`'s `dist=` check is also the validation for this.
 - [ ] Decide how to handle the missing SLAM daemon (see options below) —
