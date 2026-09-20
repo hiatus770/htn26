@@ -48,7 +48,9 @@ def main():
                                   args.assets / "models/classification.h5")
     source = "camera.{}.jpeg".format(args.camera)
     completed, last_inference = 0, 0.0
-    with Reader(source) as reader:
+    # Camera topics are read-only inputs. Disable BBOS time logging so the
+    # container does not need to create shared-memory bookkeeping objects.
+    with Reader(source, keeptime=False) as reader:
         while args.frames == 0 or completed < args.frames:
             if not reader.ready():
                 time.sleep(0.002)

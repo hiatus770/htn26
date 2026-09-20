@@ -1,0 +1,12 @@
+#[path = "/home/hiatus/Projects/anchor/anchor-desktop/src/anchorwayland/capture_backend.rs"]
+pub mod capture_backend;
+#[path = "/home/hiatus/Projects/anchor/anchor-desktop/src/anchorwayland/input/mod.rs"]
+pub mod input;
+#[path = "/home/hiatus/Projects/anchor/anchor-desktop/src/anchorwayland/screencopy.rs"]
+pub mod screencopy;
+#[path = "/home/hiatus/Projects/anchor/anchor-desktop/src/anchorwayland/wayland_dispatch.rs"]
+pub mod wayland_dispatch;
+#[path = "/home/hiatus/Projects/anchor/anchor-desktop/src/anchorwayland/wayland_mem.rs"]
+pub mod wayland_mem;
+#[path = "/home/hiatus/Projects/anchor/anchor-desktop/src/anchorwayland/wayland_objects.rs"]
+pub mod wayland_objects;

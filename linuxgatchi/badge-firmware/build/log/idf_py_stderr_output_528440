@@ -1,0 +1,38 @@
+Command: /home/hiatus/.espressif/python_env/idf5.5_py3.14_env/bin/python /home/hiatus/esp-idf/tools/idf_monitor.py -p /dev/ttyACM0 -b 115200 --toolchain-prefix riscv32-esp-elf- --target esp32c3 --revision 3 --decode-panic backtrace /home/hiatus/Projects/htn26/linuxgatchi/badge-firmware/build/badge_bridge.elf /home/hiatus/Projects/htn26/linuxgatchi/badge-firmware/build/bootloader/bootloader.elf -m '/home/hiatus/.espressif/python_env/idf5.5_py3.14_env/bin/python' '/home/hiatus/esp-idf/tools/idf.py' '-p' '/dev/ttyACM0'
+--- esp-idf-monitor 1.10.0 on /dev/ttyACM0 115200
+--- Standard input is not a TTY, running in non-interactive mode. Reading commands from stdin: reset, flash, flash-all, app-flash, output, log, timestamps, bootloader, send <text>, sleep <seconds>, expect [--timeout <seconds>] <regex>, exit | Quit: 'exit' command, EOF or Ctrl+C
+--- No commands on standard input, watching serial output only...
+--- ERROR: Connection to /dev/ttyACM0 failed. Available ports:
+/dev/ttyS31
+/dev/ttyS30
+/dev/ttyS29
+/dev/ttyS28
+/dev/ttyS27
+/dev/ttyS26
+/dev/ttyS25
+/dev/ttyS24
+/dev/ttyS23
+/dev/ttyS22
+/dev/ttyS21
+/dev/ttyS20
+/dev/ttyS19
+/dev/ttyS18
+/dev/ttyS17
+/dev/ttyS16
+/dev/ttyS15
+/dev/ttyS14
+/dev/ttyS13
+/dev/ttyS12
+/dev/ttyS11
+/dev/ttyS10
+/dev/ttyS9
+/dev/ttyS8
+/dev/ttyS7
+/dev/ttyS6
+/dev/ttyS5
+/dev/ttyS4
+/dev/ttyS3
+/dev/ttyS2
+/dev/ttyS1
+/dev/ttyS0
+

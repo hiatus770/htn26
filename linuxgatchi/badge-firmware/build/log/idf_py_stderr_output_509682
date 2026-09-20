@@ -1,0 +1,8 @@
+Command: /home/hiatus/.espressif/python_env/idf5.5_py3.14_env/bin/python /home/hiatus/esp-idf/tools/idf_monitor.py -p /dev/ttyACM0 -b 115200 --toolchain-prefix riscv32-esp-elf- --target esp32c3 --revision 3 --decode-panic backtrace /home/hiatus/Projects/htn26/linuxgatchi/badge-firmware/build/badge_bridge.elf /home/hiatus/Projects/htn26/linuxgatchi/badge-firmware/build/bootloader/bootloader.elf -m '/home/hiatus/.espressif/python_env/idf5.5_py3.14_env/bin/python' '/home/hiatus/esp-idf/tools/idf.py' '-p' '/dev/ttyACM0'
+--- esp-idf-monitor 1.10.0 on /dev/ttyACM0 115200
+--- Quit: Ctrl+] | Menu: Ctrl+T | Help: Ctrl+T followed by Ctrl+H
+--- 0x420138f6: tryget_socket_unconn at /home/hiatus/esp-idf/components/lwip/lwip/src/api/sockets.c:472
+--- 0x403cbf10: esp_bootloader_get_description at /home/hiatus/esp-idf/components/esp_bootloader_format/esp_bootloader_desc.c:39
+--- 0x403ce710: esp_flash_encryption_enabled at /home/hiatus/esp-idf/components/bootloader_support/src/flash_encrypt.c:89
+--- 0x403cbf1a: call_start_cpu0 at /home/hiatus/esp-idf/components/bootloader/subproject/main/bootloader_start.c:27
+

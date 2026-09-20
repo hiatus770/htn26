@@ -1,0 +1,167 @@
+Command: /home/hiatus/.espressif/python_env/idf5.5_py3.14_env/bin/python /home/hiatus/esp-idf/tools/idf_monitor.py -p /dev/ttyACM0 -b 115200 --toolchain-prefix riscv32-esp-elf- --target esp32c3 --revision 3 --decode-panic backtrace /home/hiatus/Projects/htn26/linuxgatchi/badge-firmware/build/badge_bridge.elf /home/hiatus/Projects/htn26/linuxgatchi/badge-firmware/build/bootloader/bootloader.elf -m '/home/hiatus/.espressif/python_env/idf5.5_py3.14_env/bin/python' '/home/hiatus/esp-idf/tools/idf.py' '-p' '/dev/ttyACM0'
+[0;32mI (148) esp_image: segment 4: paddr=000c7988 vaddr=40381b7c sizeESP-ROM:esp32c3-api1-20210207[0m
+Build:Feb  7 2021
+rst:0x15 (USB_UART_CHIP_RESET),boot:0xd (SPI_FAST_FLASH_BOOT)
+Saved PC:0x403857e0
+SPIWP:0xee
+mode:DIO, clock div:1
+load:0x3fcd5830,len:0x1584
+load:0x403cbf10,len:0xc44
+load:0x403ce710,len:0x2ff8
+entry 0x403cbf1a
+[0;32mI (24) boot: ESP-IDF v5.5.3 2nd stage bootloader[0m
+[0;32mI (24) boot: compile time Sep 19 2026 21:46:25[0m
+[0;32mI (24) boot: chip revision: v0.4[0m
+[0;32mI (25) boot: efuse block revision: v1.3[0m
+[0;32mI (25) boot.esp32c3: SPI Speed      : 80MHz[0m
+[0;32mI (25) boot.esp32c3: SPI Mode       : DIO[0m
+[0;32mI (25) boot.esp32c3: SPI Flash Size : 4MB[0m
+[0;32mI (25) boot: Enabling RNG early entropy source...[0m
+[0;32mI (25) boot: Partition Table:[0m
+[0;32mI (25) boot: ## Label            Usage          Type ST Offset   Length[0m
+[0;32mI (26) boot:  0 nvs              WiFi data        01 02 00009000 00006000[0m
+[0;32mI (26) boot:  1 phy_init         RF data          01 01 0000f000 00001000[0m
+[0;32mI (26) boot:  2 factory          factory app      00 00 00010000 00100000[0m
+[0;32mI (27) boot: End of partition table[0m
+[0;32mI (27) esp_image: segment 0: paddr=00010020 vaddr=3c0a0020 size=1b068h (110696) map[0m
+[0;32mI (45) esp_image: segment 1: paddr=0002b090 vaddr=3fc96400 size=03404h ( 13316) load[0m
+[0;32mI (48) esp_image: segment 2: paddr=0002e49c vaddr=40380000 size=01b7ch (  7036) load[0m
+[0;32mI (49) esp_image: segment 3: paddr=00030020 vaddr=42000020 size=97960h (620896) map[0m
+[0;32mI (148) esp_image: segment 4: paddr=000c7988 vaddr=40381b7c size=14850h ( 84048) load[0m
+[0;32mI (164) esp_image: segment 5: paddr=000dc1e0 vaddr=50000000 size=00020h (    32) load[0m
+[0;32mI (171) boot: Loaded app from partition at offset 0x10000[0m
+[0;32mI (171) boot: Disabling RNG early entropy source...[0m
+[0;32mI (172) cpu_start: Unicore app[0m
+[0;32mI (180) cpu_start: Pro cpu start user code[0m
+[0;32mI (180) cpu_start: cpu freq: 160000000 Hz[0m
+[0;32mI (181) app_init: Application information:[0m
+[0;32mI (181) app_init: Project name:     badge_bridge[0m
+[0;32mI (181) app_init: App version:      9399c43-dirty[0m
+[0;32mI (181) app_init: Compile time:     Sep 19 2026 21:57:22[0m
+[0;32mI (181) app_init: ELF file SHA256:  988cb74a1...[0m
+[0;32mI (181) app_init: ESP-IDF:          v5.5.3[0m
+[0;32mI (181) efuse_init: Min chip rev:     v0.3[0m
+[0;32mI (181) efuse_init: Max chip rev:     v1.99 [0m
+[0;32mI (181) efuse_init: Chip rev:         v0.4[0m
+[0;32mI (182) heap_init: Initializing. RAM available for dynamic allocation:[0m
+[0;32mI (182) heap_init: At 3FCA0810 len 0001F7F0 (125 KiB): RAM[0m
+[0;32mI (182) heap_init: At 3FCC0000 len 0001C710 (113 KiB): Retention RAM[0m
+[0;32mI (182) heap_init: At 3FCDC710 len 00002950 (10 KiB): Retention RAM[0m
+[0;32mI (182) heap_init: At 50000020 len 00001FC8 (7 KiB): RTCRAM[0m
+[0;32mI (183) spi_flash: detected chip: generic[0m
+[0;32mI (183) spi_flash: flash io: dio[0m
+[0;32mI (184) sleep_gpio: Configure to isolate all GPIO pins in sleep state[0m
+[0;32mI (184) sleep_gpio: Enable automatic switching of GPIO sleep configuration[0m
+[0;32mI (185) main_task: Started on CPU0[0m
+[0;32mI (185) main_task: Calling app_main()[0m
+[0;32mI (315) badge_bridge: ST7789 ready: SPI2 40MHz, 320x240 RGB565[0m
+[0;32mI (317) pp: pp rom version: 9387209[0m
+[0;32mI (317) net80211: net80211 rom version: 9387209[0m
+[0;32mI (319) wifi:wifi driver task: 3fca9990, prio:23, stack:6656, core=0[0m
+[0;32mI (325) wifi:wifi firmware version: 4df78f2[0m
+[0;32mI (325) wifi:wifi certification version: v7.0[0m
+[0;32mI (325) wifi:config NVS flash: enabled[0m
+[0;32mI (325) wifi:config nano formatting: disabled[0m
+[0;32mI (325) wifi:Init data frame dynamic rx buffer num: 32[0m
+[0;32mI (326) wifi:Init static rx mgmt buffer num: 5[0m
+[0;32mI (326) wifi:Init management short buffer num: 32[0m
+[0;32mI (326) wifi:Init dynamic tx buffer num: 32[0m
+[0;32mI (326) wifi:Init static tx FG buffer num: 2[0m
+[0;32mI (326) wifi:Init static rx buffer size: 1600[0m
+[0;32mI (327) wifi:Init static rx buffer num: 10[0m
+[0;32mI (327) wifi:Init dynamic rx buffer num: 32[0m
+[0;32mI (327) wifi_init: rx ba win: 6[0m
+[0;32mI (328) wifi_init: accept mbox: 6[0m
+[0;32mI (328) wifi_init: tcpip mbox: 32[0m
+[0;32mI (328) wifi_init: udp mbox: 6[0m
+[0;32mI (328) wifi_init: tcp mbox: 6[0m
+[0;32mI (328) wifi_init: tcp tx win: 5760[0m
+[0;32mI (328) wifi_init: tcp rx win: 5760[0m
+[0;32mI (328) wifi_init: tcp mss: 1440[0m
+[0;32mI (328) wifi_init: WiFi IRAM OP enabled[0m
+[0;32mI (328) wifi_init: WiFi RX IRAM OP enabled[0m
+[0;33mW (329) wifi:Password length matches WPA2 standards, authmode threshold changes from OPEN to WPA2[0m
+[0;32mI (330) phy_init: phy_version 1232,d493f299,Aug 25 2025,19:01:20[0m
+[0;32mI (364) wifi:mode : sta (e8:f6:0a:29:d3:44)[0m
+[0;32mI (365) wifi:enable tsf[0m
+[0;32mI (367) badge_bridge: Wi-Fi connecting to SSID 'SM-G973W3172'[0m
+[0;32mI (368) badge_bridge: badge bridge started; USB-Serial-JTAG logs enabled[0m
+[0;32mI (368) main_task: Returned from app_main()[0m
+[0;32mI (373) wifi:new:<1,0>, old:<1,0>, ap:<255,255>, sta:<1,0>, prof:1, snd_ch_cfg:0x0[0m
+[0;32mI (374) wifi:state: init -> auth (0xb0)[0m
+[0;32mI (1071) wifi:state: auth -> assoc (0x0)[0m
+[0;32mI (2073) wifi:state: assoc -> init (0x400)[0m
+[0;32mI (2075) wifi:new:<1,0>, old:<1,0>, ap:<255,255>, sta:<1,0>, prof:1, snd_ch_cfg:0x0[0m
+[0;33mW (2077) badge_bridge: Wi-Fi disconnected reason=4; retrying[0m
+[0;33mW (4486) badge_bridge: Wi-Fi disconnected reason=205; retrying[0m
+[0;32mI (4493) wifi:new:<1,0>, old:<1,0>, ap:<255,255>, sta:<1,0>, prof:1, snd_ch_cfg:0x0[0m
+[0;32mI (4494) wifi:state: init -> auth (0xb0)[0m
+[0;32mI (5189) wifi:state: auth -> assoc (0x0)[0m
+[0;32mI (5230) wifi:state: assoc -> run (0x10)[0m
+[0;32mI (5256) wifi:connected with SM-G973W3172, aid = 1, channel 1, BW20, bssid = d6:eb:db:d9:e6:8e[0m
+[0;32mI (5256) wifi:security: WPA3-SAE, phy: bgn, rssi: -56[0m
+[0;32mI (5258) wifi:pm start, type: 1[0m
+
+[0;32mI (5258) wifi:dp: 1, bi: 102400, li: 3, scale listen interval from 307200 us to 307200 us[0m
+[0;32mI (5259) wifi:set rx beacon pti, rx_bcn_pti: 0, bcn_timeout: 25000, mt_pti: 0, mt_time: 10000[0m
+[0;32mI (5276) wifi:dp: 2, bi: 102400, li: 4, scale listen interval from 307200 us to 409600 us[0m
+[0;32mI (5277) wifi:AP's beacon interval = 102400 us, DTIM period = 2[0m
+[0;32mI (5284) wifi:<ba-add>idx:0 (ifx:0, d6:eb:db:d9:e6:8e), tid:0, ssn:1, winSize:64[0m
+[0;32mI (6296) esp_netif_handlers: sta ip: 172.25.67.40, mask: 255.255.255.0, gw: 172.25.67.89[0m
+[0;32mI (6296) badge_bridge: Wi-Fi ready, IP=172.25.67.40[0m
+[0;32mI (6297) badge_bridge: Wi-Fi AP=SM-G973W3172 RSSI=-52 channel=1[0m
+[0;32mI (6817) badge_bridge: bridge connected to 172.25.67.153:8765[0m
+[0;32mI (79705) badge_bridge: received frames=120[0m
+[0;32mI (88502) badge_bridge: received frames=240[0m
+[0;32mI (93985) badge_bridge: received frames=360[0m
+[0;32mI (96940) badge_bridge: received frames=480[0m
+[0;32mI (108606) badge_bridge: received frames=600[0m
+[0;32mI (113450) badge_bridge: received frames=720[0m
+[0;32mI (119871) badge_bridge: received frames=840[0m
+[0;32mI (122238) badge_bridge: received frames=960[0m
+[0;32mI (124840) badge_bridge: received frames=1080[0m
+[0;33mW (130162) badge_bridge: bridge disconnected[0m
+[0;33mW (131337) badge_bridge: bridge connect failed: errno=104[0m
+[0;33mW (132565) badge_bridge: bridge connect failed: errno=104[0m
+[0;33mW (134013) badge_bridge: bridge connect failed: errno=104[0m
+[0;33mW (135432) badge_bridge: bridge connect failed: errno=104[0m
+[0;33mW (136460) badge_bridge: bridge connect failed: errno=104[0m
+[0;33mW (137473) badge_bridge: bridge connect failed: errno=104[0m
+[0;33mW (138481) badge_bridge: bridge connect failed: errno=104[0m
+[0;33mW (139490) badge_bridge: bridge connect failed: errno=104[0m
+[0;32mI (140761) badge_bridge: bridge connected to 172.25.67.153:8765[0m
+[0;32mI (144008) badge_bridge: received frames=1200[0m
+[0;32mI (174988) badge_bridge: received frames=1320[0m
+[0;32mI (177531) badge_bridge: received frames=1440[0m
+[0;32mI (183153) badge_bridge: received frames=1560[0m
+[0;32mI (186482) badge_bridge: received frames=1680[0m
+[0;32mI (188495) badge_bridge: received frames=1800[0m
+[0;32mI (193126) badge_bridge: received frames=1920[0m
+[0;32mI (196581) badge_bridge: received frames=2040[0m
+[0;32mI (202014) badge_bridge: received frames=2160[0m
+[0;32mI (205679) badge_bridge: received frames=2280[0m
+[0;32mI (210977) badge_bridge: received frames=2400[0m
+[0;32mI (215948) badge_bridge: received frames=2520[0m
+[0;33mW (218779) badge_bridge: bridge disconnected[0m
+[0;32mI (219814) badge_bridge: bridge connected to 172.25.67.153:8765[0m
+[0;32mI (234113) badge_bridge: received frames=2640[0m
+[0;32mI (234704) badge_bridge: received frames=2760[0m
+[0;32mI (242713) badge_bridge: received frames=2880[0m
+[0;32mI (244126) badge_bridge: received frames=3000[0m
+[0;32mI (247897) badge_bridge: received frames=3120[0m
+[0;32mI (269868) badge_bridge: received frames=3240[0m
+[0;32mI (270788) badge_bridge: received frames=3360[0m
+[0;32mI (271250) badge_bridge: received frames=3480[0m
+[0;32mI (271907) badge_bridge: received frames=3600[0m
+[0;32mI (272517) badge_bridge: received frames=3720[0m
+[0;32mI (273358) badge_bridge: received frames=3840[0m
+[0;32mI (273875) badge_bridge: received frames=3960[0m
+[0;32mI (275080) badge_bridge: received frames=4080[0m
+[0;32mI (277306) badge_bridge: received frames=4200[0m
+[0;32mI (277733) badge_bridge: received frames=4320[0m
+[0;32mI (303789) badge_bridge: received frames=4440[0m
+[0;32mI (304507) badge_bridge: received frames=4560[0m
+[0;32mI (306049) badge_bridge: received frames=4680[0m
+[0;32mI (307462) badge_bridge: received frames=4800[0m
+[0;32mI (309313) badge_bridge: received frames=4920[0m
+[0;32mI (310648) badge_bridge: received frames=5040[0m

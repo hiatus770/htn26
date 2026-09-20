@@ -1,0 +1,2 @@
+source /home/hiatus/Projects/htn26/linuxgatchi/badge-firmware/build/bootloader/gdbinit/symbols
+source /home/hiatus/Projects/htn26/linuxgatchi/badge-firmware/build/bootloader/gdbinit/connect

@@ -1,0 +1,20 @@
+menu "Badge bridge"
+
+config BADGE_WIFI_SSID
+    string "Wi-Fi SSID"
+    default "nghs8133"
+
+config BADGE_WIFI_PASSWORD
+    string "Wi-Fi password"
+    default ""
+
+config BADGE_BRIDGE_HOST
+    string "Bridge host IPv4 address"
+    default "192.168.1.2"
+
+config BADGE_BRIDGE_PORT
+    int "Bridge TCP port"
+    default 8765
+
+endmenu
+

@@ -1,0 +1,10 @@
+/home/hiatus/Projects/htn26/linuxgatchi/target/debug/deps/wayland_server-9d2c7385dd1d5732.d: /home/hiatus/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/wayland-server-0.31.14/src/lib.rs /home/hiatus/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/wayland-server-0.31.14/src/client.rs /home/hiatus/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/wayland-server-0.31.14/src/dispatch.rs /home/hiatus/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/wayland-server-0.31.14/src/display.rs /home/hiatus/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/wayland-server-0.31.14/src/global.rs /home/hiatus/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/wayland-server-0.31.14/src/socket.rs
+
+/home/hiatus/Projects/htn26/linuxgatchi/target/debug/deps/libwayland_server-9d2c7385dd1d5732.rmeta: /home/hiatus/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/wayland-server-0.31.14/src/lib.rs /home/hiatus/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/wayland-server-0.31.14/src/client.rs /home/hiatus/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/wayland-server-0.31.14/src/dispatch.rs /home/hiatus/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/wayland-server-0.31.14/src/display.rs /home/hiatus/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/wayland-server-0.31.14/src/global.rs /home/hiatus/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/wayland-server-0.31.14/src/socket.rs
+
+/home/hiatus/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/wayland-server-0.31.14/src/lib.rs:
+/home/hiatus/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/wayland-server-0.31.14/src/client.rs:
+/home/hiatus/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/wayland-server-0.31.14/src/dispatch.rs:
+/home/hiatus/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/wayland-server-0.31.14/src/display.rs:
+/home/hiatus/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/wayland-server-0.31.14/src/global.rs:
+/home/hiatus/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/wayland-server-0.31.14/src/socket.rs:

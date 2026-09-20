@@ -36,16 +36,26 @@ class ChessboardDetector:
         return [] if predictions is None else self._refine(predictions)
 
     def predict_board(self, image, corners):
+        cells = self.extract_cells(image, corners)
+        confidence = self.classification_model.predict(cells, batch_size=8, verbose=0)
+        self.last_confidence = confidence
+        return self._filter_predictions(confidence)
+
+    def extract_cells(self, image, corners):
+        """Return the 64 classifier inputs, preserving the legacy crop geometry."""
         self.img_nn = cv2.cvtColor(image, cv2.COLOR_BGR2RGB) / 255.0
         scale_factor = image.shape[1] / 512
         scaled_corners = np.asarray(corners) * scale_factor
         _, rotation, translation = cv2.solvePnP(
             self.dest_coords, scaled_corners, self.cam_m, self.dist_m
         )
+        self.last_scaled_corners = scaled_corners
+        self.last_rotation = rotation
+        self.last_translation = translation
+        self.last_cell_debug = []
         cells = [self._cell_image(7 - row, col, rotation, translation)
                  for row in range(8) for col in range(8)]
-        confidence = self.classification_model.predict(np.asarray(cells), batch_size=8, verbose=0)
-        return self._filter_predictions(confidence)
+        return np.asarray(cells)
 
     def _filter_predictions(self, confidence):
         layout = -np.ones(64, dtype=np.int32)
@@ -66,8 +76,12 @@ class ChessboardDetector:
         points = np.concatenate((low_pos, up_pos)).astype(np.float32)
         image_points, _ = cv2.projectPoints(points, rotation, translation, self.cam_m, self.dist_m)
         rectangle = cv2.minAreaRect(image_points.reshape(-1, 2))
-        box = cv2.boxPoints(rectangle).astype(np.int32)
-        width, height = map(int, rectangle[1])
+        # OpenCV 4.4 returned this box one vertex earlier and with its dimensions
+        # exchanged.  The original model pipeline implicitly relied on that order
+        # when assigning the four destination points.  Normalize OpenCV >= 4.5 to
+        # the legacy convention before constructing the perspective transform.
+        box = np.roll(cv2.boxPoints(rectangle), 1, axis=0).astype(np.int32)
+        height, width = map(int, rectangle[1])
         source = box.astype(np.float32)
         destination = np.array([[0, height - 1], [0, 0], [width - 1, 0],
                                 [width - 1, height - 1]], dtype=np.float32)
@@ -84,6 +98,14 @@ class ChessboardDetector:
             target_height = width * 2
             trim = round((height - target_height) / 2)
             warped = warped[trim:height - trim, :, :]
+        self.last_cell_debug.append({
+            "cell": np.array([cell_x, cell_y], dtype=np.int32),
+            "image_points": image_points.reshape(-1, 2),
+            "rectangle": np.array([*rectangle[0], *rectangle[1], rectangle[2]], dtype=np.float64),
+            "box": box,
+            "source": source,
+            "destination": destination,
+        })
         return cv2.resize(imutils.resize(warped, width=100), (100, 200)).reshape(200, 100, 3)
 
     def _refine(self, predictions):
