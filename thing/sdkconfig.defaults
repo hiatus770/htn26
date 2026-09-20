@@ -1,0 +1,7 @@
+# Native USB console -- this board has no UART0 broken out.
+CONFIG_ESP_CONSOLE_USB_SERIAL_JTAG=y
+
+# Matches the badge's actual flash part: DIO mode, 80 MHz, 4 MB.
+CONFIG_ESPTOOLPY_FLASHMODE_DIO=y
+CONFIG_ESPTOOLPY_FLASHFREQ_80M=y
+CONFIG_ESPTOOLPY_FLASHSIZE_4MB=y
